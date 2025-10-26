@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Gap Analyzer</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+            animation: gradientShift 15s ease infinite;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+        }
+
+        .navbar-brand,
+        .navbar-nav .nav-link {
+            color: white;
+            font-weight: 600;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #f1c40f;
+        }
+
+        .navbar-nav .nav-link[href*="Resources"] {
+            display: none;
+        }
+
+        .container {
+            margin-top: 70px;
+        }
+
+        .card {
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            background-color: white;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card-header {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .quote {
+            font-style: italic;
+            text-align: center;
+            color: #555;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        .btn-analyze {
+            background-color: #5dade2;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-analyze:hover {
+            background-color: #3498db;
+            transform: scale(1.05);
+        }
+
+        .form-control-file {
+            margin: auto;
+            display: block;
+            text-align: center;
+        }
+
+        .note-section {
+            margin-top: 40px;
+        }
+
+        .note-area {
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: white;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="#">Skill Gap Analyzer</a>
+    <div class="collapse navbar-collapse justify-content-end">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-toggle="modal" data-target="#switchUserModal">Hi, {{ username }}!</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('important') }}">Important Insights</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#note-section">Note</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#creator-section">Creator</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Switch User Modal -->
+<div class="modal fade" id="switchUserModal" tabindex="-1" role="dialog" aria-labelledby="switchUserLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="switchUserLabel">Switch User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to switch users? This will log you out.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">Yes, Switch</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container d-flex justify-content-center">
+    <div class="card text-center" style="max-width: 600px; width: 100%;">
+        <div class="card-header">📊 Your Skill Gaps</div>
+        <p class="quote">"{{ quote }}"</p>
+
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="file" class="form-control-file" required>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-analyze">🔍 Analyze</button>
+            </div>
+        </form>
+
+        {% if skill_gaps %}
+        <div class="mt-5 text-left">
+            <h5>📚 Recommended Courses:</h5>
+            <ul class="list-group mt-3">
+                {% for subject, course in skill_gaps %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong>{{ subject }}</strong>
+                    <span class="badge badge-primary badge-pill">{{ course }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Note Section -->
+        <div id="note-section" class="note-section text-left mt-5">
+            <div class="card border-0 shadow-sm" style="background-color: #fdfefe; border-radius: 15px;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark mb-3 d-flex align-items-center">
+                        <img src="https://img.icons8.com/color/24/000000/note.png" alt="Note Icon" style="margin-right: 10px;">
+                        Your Notes
+                    </h5>
+                    <form action="/save_note" method="POST">
+                        <div class="form-group">
+                            <textarea id="noteContent" class="form-control note-area p-3" name="note_content" rows="6" placeholder="🔋 Start typing your thoughts here..." style="font-size: 1rem; border-radius: 10px; resize: vertical; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">{{ note }}</textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success d-flex align-items-center" style="font-weight: 600; border-radius: 8px;">
+                                <img src="https://img.icons8.com/fluency/24/save.png" alt="Save Icon" class="mr-2"> Save Note
+                            </button>
+                            <button type="button" onclick="downloadNote()" class="btn btn-outline-primary d-flex align-items-center" style="font-weight: 600; border-radius: 8px;">
+                                <img src="https://img.icons8.com/fluency/24/download.png" alt="Download Icon" class="mr-2"> Download Note
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creator Section -->
+        <div id="creator-section" class="note-section text-left mt-5 mb-5">
+            <div class="card border-0 shadow-sm" style="background-color: #fefefe; border-radius: 15px;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-dark mb-3 d-flex align-items-center justify-content-center">
+                        <img src="{{ url_for('static', filename='images/creator.png') }}" alt="Creator Image" style="margin-right: 10px; width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                        Creator
+                    </h5>
+                    <p class="text-muted mb-1">This website was crafted with dedication and purpose to empower students to identify and bridge their academic skill gaps.</p>
+                    <p><strong>Created by:</strong> <span style="color:#2c3e50;">Your Name</span></p>
+                    <p><strong>Email:</strong> <a href="mailto:your.email@example.com">your.email@example.com</a></p>
+                    <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/yourprofile" target="_blank">linkedin.com/in/yourprofile</a></p>
+                    <p><strong>GitHub:</strong> <a href="https://github.com/yourusername" target="_blank">github.com/yourusername</a></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function downloadNote() {
+    const text = document.getElementById('noteContent').value;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'my_note.txt';
+    link.click();
+}
+</script>
+</body>
+</html>

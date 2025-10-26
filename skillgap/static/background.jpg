@@ -1,0 +1,11 @@
+<style>
+body {
+    background-image: url('/static/background.jpg'); /* Place your image in static folder */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
+</style>
